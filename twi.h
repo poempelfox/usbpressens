@@ -11,11 +11,8 @@
 #define I2C_WRITE 0x00
 #define I2C_READ  0x01
 
+/* Initialize TWI */
 void twi_init(void);
-
-/* Turns the TWI of the AVR off or on. Since we have external pullups,
- * this should not influence the stability of the bus. */
-void twi_power(uint8_t p);
 
 /* send start condition and select slave */
 void twi_open(uint8_t addr);
