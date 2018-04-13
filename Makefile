@@ -26,7 +26,7 @@ CPUFREQ		= 8000000UL
 # desired baudrate of serial console
 BAUDRATE	= 19200UL
 
-SRCS	= console.c main.c timers.c twi.c
+SRCS	= console.c main.c mpl3115a2.c timers.c twi.c
 PROG	= usbpressens
 
 # compiler flags
