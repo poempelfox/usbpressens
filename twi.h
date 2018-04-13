@@ -30,7 +30,4 @@ void twi_write(uint8_t what);
  * Only ACK if you intend to receive more bytes, the last byte MUST NOT be ACKd! */
 uint8_t twi_read(uint8_t ack);
 
-/* Supply power to the connected I2C devices (or not, if p==0) */
-void twi_devicepower(uint8_t p);
-
 #endif /* _TWI_H_ */
