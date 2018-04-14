@@ -15,9 +15,9 @@ void mpl3115a2_init(void)
 {
   twi_open(MP13115A2_I2C_ADDR | I2C_WRITE);
   /* Register 0x26 and autoincrement from there */
-  twi_write(0x26 | I2C_AUTOINCREGADDR);
+  twi_write(0x26 /* | I2C_AUTOINCREGADDR */);
   /* 0x26 = CTRL_REG1: Enable sampling with maximum oversampling, barometer mode */
-  twi_write(0x0b);
+  twi_write(0x39);
   /* 0x27 = CTRL_REG2: Autoacquisition every second, no other nonsense. */
   twi_write(0x00);
   twi_close();
@@ -28,9 +28,9 @@ uint32_t mpl3115a2_getpressure(void)
   uint32_t res = 0;
   twi_open(MP13115A2_I2C_ADDR | I2C_WRITE);
   /* Start with the OUT_P_MSB register at 0x01 */
-  twi_write(0x01 | I2C_AUTOINCREGADDR);
-  twi_close();
-  _delay_us(1);
+  twi_write(0x01);
+  /* Do NOT send twi_close(), the sensor ONLY works with a repeated START,
+   * not with a proper STOP in between! */
   twi_open(MP13115A2_I2C_ADDR | I2C_READ);
   res |= ((uint32_t)twi_read(1)) << 16;
   res |= ((uint32_t)twi_read(1)) <<  8;
@@ -45,9 +45,9 @@ int16_t mpl3115a2_gettemp(void)
   uint16_t res = 0;
   twi_open(MP13115A2_I2C_ADDR | I2C_WRITE);
   /* Start with the OUT_T_MSB register at 0x04 */
-  twi_write(0x04 | I2C_AUTOINCREGADDR);
-  twi_close();
-  _delay_us(1);
+  twi_write(0x04);
+  /* Do NOT send twi_close(), the sensor ONLY works with a repeated START,
+   * not with a proper STOP in between! */
   twi_open(MP13115A2_I2C_ADDR | I2C_READ);
   res |= ((uint16_t)twi_read(1)) <<  8;
   res |= ((uint16_t)twi_read(0)) <<  0;
