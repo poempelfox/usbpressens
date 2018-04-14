@@ -9,5 +9,6 @@
 void mpl3115a2_init(void);
 
 uint32_t mpl3115a2_getpressure(void);
+int16_t mpl3115a2_gettemp(void);
 
 #endif /* _MPL3115A2_H_ */
