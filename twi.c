@@ -4,7 +4,9 @@
  */
 
 #include <avr/io.h>
+#include <util/delay.h>
 #include "twi.h"
+#include "console.h"
 
 void twi_init(void)
 {
@@ -14,6 +16,8 @@ void twi_init(void)
   TWBR = 32;
   /* The two TWPS bits are hidden in the status register */
   TWSR = 0; /* prescaler = 1 (that's the poweron default anyways) */
+  /* Enable pullups on the I2C pins */
+  PORTC |= _BV(PC4) | _BV(PC5);
 }
 
 static void waitforcompl(void)
@@ -22,6 +26,8 @@ static void waitforcompl(void)
   while ((TWCR & _BV(TWINT)) == 0) {
     abortctr++; /* This is a needed workaround, else we'll just get stuck */
     if (abortctr > 200) { /* whenever a slave doesn't feel like ACKing. */
+      console_printchar('!');
+      console_printchar('W');
       break;
     }
   }
@@ -46,6 +52,8 @@ void twi_close(void)
   while ((TWCR & _BV(TWSTO))) {
     abortctr++;
     if (abortctr > 200) {
+      console_printchar('!');
+      console_printchar('C');
       break;
     }
   }
