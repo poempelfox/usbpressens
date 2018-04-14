@@ -1,5 +1,5 @@
 # $Id: Makefile $
-# Makefile for JeeNode Weather Station
+# Makefile for USB barometric pressure sensor with display.
 
 CC	= avr-gcc
 OBJDUMP	= avr-objdump
@@ -9,7 +9,9 @@ INCDIR	= .
 # There are a few additional defines that en- or disable certain features,
 # mainly to save space in case you are running out of flash.
 # You can add them here.
-#  -DSERIALCONSOLE   Support for serial debug console
+#  -DSERIALCONSOLE   Support for serial debug console.
+#                    Note that this project is not functional without a serial
+#                    console, so this is not optional in this project.
 ADDDEFS	= -DSERIALCONSOLE
 
 # target mcu (atmega 328p)
