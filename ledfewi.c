@@ -39,7 +39,6 @@
  *
  * Ignore the following line, this is just here as a C&P help:
  *  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
- *  0  0  0  0  0  0  0  0  1  1  1  0  0  1  1  0
  */
 
 /* We provide a sort of default font. */
@@ -51,6 +50,12 @@ uint16_t ledfewi_getfontentry(uint8_t c)
   case '2': return 0x088B;
   case '3': return 0x00CF;
   case '4': return 0x00E6;
+  case '5': return 0x00ED;
+  case '6': return 0x00FD;
+  case '7': return 0x0C01;
+  case '8': return 0x00FF;
+  case '9': return 0x00EF;
+  case '.': return 0x4000; /* This is best ORed onto something else */
   };
   return 0x0000;
 }
