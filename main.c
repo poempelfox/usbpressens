@@ -14,6 +14,7 @@
 #include <util/delay.h>
 
 #include "console.h"
+#include "ledfewi.h"
 #include "mpl3115a2.h"
 #include "timers.h"
 #include "twi.h"
@@ -36,7 +37,19 @@ int main(void) {
   timers_init();
   twi_init();
   _delay_ms(100); /* Give the chip some time to start up */
+  ledfewi_init();
   mpl3115a2_init();
+  
+  /* Turn on all display segments at maximum brightness for a second */
+  ledfewi_setbrightness(15);
+  ledfewi_setraw_and(0, 0x7fff);
+  ledfewi_setraw_and(1, 0x7fff);
+  ledfewi_setraw_and(2, 0x7fff);
+  ledfewi_setraw_and(3, 0x7fff);
+  _delay_ms(1000);
+  /* Now turn the display brightness down to a sane level. No need to
+   * overwrite what is displayed, that will happen in a second anyways. */
+  ledfewi_setbrightness(9);
   
   /* Enable watchdog timer with a timeout of 8 seconds */
   wdt_enable(WDTO_8S); /* Longest possible on ATmega328P */
@@ -54,7 +67,7 @@ int main(void) {
   while (1) { /* Main loop, we should never exit it. */
     uint16_t curts = getticks();
     if ((curts - lastts) >= TICKSPERSECOND) { /* One second has passed */
-      char outbuf[20]; uint8_t bpfrac;
+      char tmpbuf[20]; uint8_t bpfrac; int i;
       /* Get pressure */
       cli(); /* So that the serial debug console cannot get a corrupt value inbetween */
       barpress = mpl3115a2_getpressure();
@@ -64,8 +77,8 @@ int main(void) {
       sei();
       /* Output the value on the serial console */
       console_printpgm_P(PSTR(">Barometric Pressure: "));
-      sprintf(outbuf, "%lu", (barpress >> 2));
-      console_printtext(outbuf);
+      sprintf(tmpbuf, "%lu", (barpress >> 2));
+      console_printtext(tmpbuf);
       bpfrac = barpress & 0x03;
       switch (bpfrac) {
       case 0x00: console_printpgm_P(PSTR(".00")); break;
@@ -74,9 +87,14 @@ int main(void) {
       case 0x03: console_printpgm_P(PSTR(".75")); break;
       };
       console_printpgm_P(PSTR(" Pa / "));
-      sprintf(outbuf, "%lu", (barpress / 400));
-      console_printtext(outbuf);
+      sprintf(tmpbuf, "%lu", (barpress / 400));
+      console_printtext(tmpbuf);
       console_printpgm_P(PSTR(" hPa\r\n"));
+      /* Now also set it on the LED display */
+      sprintf(tmpbuf, "%4lu", (barpress / 400));
+      for (i = 0; i < 4; i++) {
+        ledfewi_setraw_and(i, ledfewi_getfontentry(tmpbuf[i]));
+      }
       lastts = curts;
     }
     wdt_reset();
