@@ -11,8 +11,6 @@
 #include <stdio.h>
 #include "console.h"
 
-#if (defined(SERIALCONSOLE))
-
 /* PD0 is RXD, PD1 is TXD, but we don't need to address them manually */
 
 /* Formula for calculating the value of UBRR from baudrate and cpufreq */
@@ -38,6 +36,8 @@ static const uint8_t WELCOMEMSG[] PROGMEM = "\r\n"\
 static const uint8_t PROMPT[] PROGMEM = "\r\n# ";
 
 /* external variables */
+extern uint32_t barpress;
+extern int16_t temp;
 
 /* Handler for TXC (TX Complete) IRQ */
 ISR(USART_TX_vect) {
@@ -152,6 +152,12 @@ void console_printpgm_noirq_P(PGM_P what) {
 
 /* These are wrappers for our internal functions, disabling IRQs before
  * calling them. */
+void console_printchar(uint8_t what) {
+  cli();
+  console_printchar_noirq(what);
+  sei();
+}
+
 void console_printtext(const uint8_t * what) {
   cli();
   console_printtext_noirq(what);
@@ -323,7 +329,28 @@ void console_inputchar(uint8_t inpb) {
               }
             }
           } else if (strcmp_P(inputbuf, PSTR("status")) == 0) {
+            char tmpbuf[20]; uint8_t bpfrac;
             console_printpgm_noirq_P(PSTR("Status / last measured values:\r\n"));
+            console_printpgm_noirq_P(PSTR("Barometric Pressure: "));
+            bpfrac = barpress & 0x03;
+            sprintf(tmpbuf, "%lu.%02u", (barpress >> 2), (bpfrac * 25));
+            console_printtext_noirq(tmpbuf);
+            console_printpgm_noirq_P(PSTR(" Pa\r\n"));
+            console_printpgm_noirq_P(PSTR("BPraw: "));
+            console_printhex8_noirq((barpress >> 24) & 0xff);
+            console_printhex8_noirq((barpress >> 16) & 0xff);
+            console_printhex8_noirq((barpress >>  8) & 0xff);
+            console_printhex8_noirq((barpress >>  0) & 0xff);
+            console_printpgm_noirq_P(PSTR("\r\n"));
+            console_printpgm_noirq_P(PSTR("Temperature: "));
+            bpfrac = temp & 0x0f;
+            sprintf(tmpbuf, "%d.%02u", (temp >> 4), (bpfrac * 25 / 4));
+            console_printtext_noirq(tmpbuf);
+            console_printpgm_noirq_P(PSTR(" degC\r\n"));
+            console_printpgm_noirq_P(PSTR("Traw: "));
+            console_printhex8_noirq((temp >>  8) & 0xff);
+            console_printhex8_noirq((temp >>  0) & 0xff);
+            console_printpgm_noirq_P(PSTR("\r\n"));
           } else {
             console_printpgm_noirq_P(PSTR("Unknown command: "));
             console_printtext_noirq(inputbuf);
@@ -350,21 +377,3 @@ ISR(USART_RX_vect) {
   inpb = UDR0;
   console_inputchar(inpb);
 }
-
-#else /*  (defined(SERIALCONSOLE)) */
-
-/* if serial console is not enabled, we have nothing to do, and just turn into
- * a black hole after sending hardware to sleep for powersaving. */
-void console_init(void) {
-  PRR |= _BV(PRUSART0);
-  PORTD |= _BV(PD0) | _BV(PD1); /* activate pullups to avoid unclear voltage levels */
-}
-
-void console_inputchar(uint8_t inpb) { }
-void console_printchar_noirq(uint8_t c) { }
-void console_printtext(const uint8_t * what) { }
-void console_printpgm_P(PGM_P what) { }
-void console_printhex8(uint8_t what) { }
-void console_printdec(uint8_t what) { }
-
-#endif /*  (defined(SERIALCONSOLE)) */
